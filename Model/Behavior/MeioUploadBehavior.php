@@ -1245,13 +1245,18 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _copyFileFromTemp($tmpName, $saveAs, $filePermission) {
 		$results = true;
 		
-		$file = new File($tmpName, $saveAs);
-		$temp = new File($saveAs, true, $filePermission);
-		if (!$temp->write($file->read())) {
-			$results = __d('meio_upload', 'Problems in the copy of the file.');
+		if(move_uploaded_file($tmpName, $saveAs)) {
+            chmod($saveAs, $filePermission);    
+        } else {
+        	// if PHP's move_uploaded_file fails, then try with CakePHP's File class
+			$file = new File($tmpName, $saveAs);
+			$temp = new File($saveAs, true, $filePermission);
+			if (!$temp->write($file->read())) {
+				$results = __d('meio_upload', 'Problems in the copy of the file.');
+			}
+			$file->close();
+			$temp->close();
 		}
-		$file->close();
-		$temp->close();
 		return $results;
 	}
 
